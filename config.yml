@@ -1,0 +1,3 @@
+jwt_agent: /usr/local/bin/jwt-agent
+mount_hpci: /usr/local/bin/mount.hpci
+umount_hpci: /usr/local/bin/umount.hpci

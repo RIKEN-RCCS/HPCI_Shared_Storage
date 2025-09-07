@@ -1,0 +1,8 @@
+name: HPCI Shared Storage
+description: HPCI Shared Storage
+icon: fa://database
+category: Passenger Apps
+#category: Files
+#subcategory: Utilities
+tile:
+  sub_caption: |
