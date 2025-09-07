@@ -1,7 +1,8 @@
 # HPCI Shared Storage App
 
-This software is a web application that runs on Open OnDemand.  
+This software is a web application that runs on Open OnDemand server.
 It allows users to mount and unmount HPCI Shared Storage.
+The Open OnDemand server requires the HPCI shared storage client to be installed in advance.
 
 ## Installation
 
