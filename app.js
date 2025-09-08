@@ -82,7 +82,7 @@ router.post('/api/mount', (req, res) => {
 
   jwt.on('close', (jwtCode) => {
     if (jwtCode !== 0) {
-      const message = jwtStdout.trim() + '<br>' + jwtStderr.trim();
+      const message = jwtStdout.trim() + '\n' + jwtStderr.trim();
       return res.json({ ok: false, stage: CMDS.jwt_agent, code: jwtCode, stderr: message });
     }
 

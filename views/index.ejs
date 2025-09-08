@@ -48,6 +48,26 @@
   (function() {
     'use strict';
 
+    // HTML-escape for safe innerHTML insertions
+    function escapeHtml(s) {
+      return String(s)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    // Normalize error-like values to a readable string
+    function toErrorText(errLike) {
+      try {
+        if (!errLike) return 'Unknown error';
+        if (typeof errLike === 'string') return errLike;
+        if (typeof errLike.message === 'string') return errLike.message;
+        return String(errLike);
+      } catch { return 'Unknown error'; }
+    }
+    
     const base = document.querySelector('meta[name="base-path"]').getAttribute('content') || ''; // Read base path injected by the server
     const mountForm = document.getElementById('mountForm');
     const hpciId_obj = document.getElementById('hpci_id');
@@ -85,9 +105,11 @@
         const data = await res.json();
 
         if (data.ok) {
-          const link = window.location.origin + '/pun/sys/dashboard/files/fs' + (data.path || '');
-          mountResult.innerHTML = '<div class="alert alert-success">Mount succeeded. <a target="_blank" href="' + link + '">' + (data.path || '') + '</a></div>';
-
+          const safePath = String(data.path || '');
+          const link = window.location.origin + '/pun/sys/dashboard/files/fs' + encodeURI(safePath);
+          mountResult.innerHTML = '<div class="alert alert-success">Mount succeeded. ' +
+            '<a target="_blank" rel="noopener" href="' + escapeHtml(link) + '">' + escapeHtml(safePath) + '</a></div>';
+	  
           // Show 3
           step3.classList.remove('d-none');
           step3p.classList.remove('d-none');
@@ -98,10 +120,10 @@
           passphrase_obj.disabled = true;
           mounted = true;
         } else {
-          mountResult.innerHTML = '<div class="alert alert-danger">Mount failed: ' + (data.stderr || data.raw || 'Unknown error') + '</div>';
+          mountResult.innerHTML = '<div class="alert alert-danger">Mount failed: ' + escapeHtml(data.stderr || data.raw || 'Unknown error') + '</div>';
         }
       } catch (err) {
-        mountResult.innerHTML = '<div class="alert alert-danger">Request failed: ' + (err && err.message ? err.message : String(err)) + '</div>';
+        mountResult.innerHTML = '<div class="alert alert-danger">Request failed: ' + escapeHtml(toErrorText(err)) + '</div>';
       } finally {
         if (!mounted) mountBtn.disabled = false;
       }
@@ -126,10 +148,10 @@
           step3p.classList.add('d-none');
           umountForm.classList.add('d-none');
         } else {
-          umountResult.innerHTML = '<div class="alert alert-danger">Unmount failed: ' + (data.stderr || data.raw || 'Unknown error') + '</div>';
+	  umountResult.innerHTML = '<div class="alert alert-danger">Unmount failed: ' + escapeHtml(data.stderr || data.raw || 'Unknown error') + '</div>';
         }
       } catch (err) {
-        umountResult.innerHTML = '<div class="alert alert-danger">Request failed: ' + (err && err.message ? err.message : String(err)) + '</div>';
+	umountResult.innerHTML = '<div class="alert alert-danger">Request failed: ' + escapeHtml(toErrorText(err)) + '</div>';
       } finally {
         umountBtn.disabled = false;
       }
