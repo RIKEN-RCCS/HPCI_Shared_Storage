@@ -7,19 +7,19 @@ The Open OnDemand server requires the HPCI shared storage client to be installed
 ## Installation
 
 1. Install this app and its dependencies in the Open OnDemand application directory:
-   ```bash
-   $ cd /var/www/ood/apps/sys/
-   $ sudo git clone https://github.com/RIKEN-RCCS/HPCI_Shared_Storage
-   $ cd HPCI_Shared_Storage
-   $ sudo npm install
-   ```
+  ```bash
+  $ cd /var/www/ood/apps/sys/
+  $ sudo git clone https://github.com/RIKEN-RCCS/HPCI_Shared_Storage
+  $ cd HPCI_Shared_Storage
+  $ sudo npm install
+  ```
 
-2. (Optional) Verify the full paths of `jwt-agent`, `mount_hpci`, and `umount_hpci` in `./config.yml`:
-   ```yaml
-   jwt_agent: /usr/local/bin/jwt-agent
-   mount_hpci: /usr/local/bin/mount.hpci
-   umount_hpci: /usr/local/bin/umount.hpci
-   ```
+2. (Optional) Verify the full paths of `jwt-agent`, `mount_hpci`, and `umount_hpci` in `./app.js`:
+  ```js
+  const JWT_AGENT = '/usr/local/bin/jwt-agent';
+  const MOUNT_HPCI = '/usr/local/bin/mount.hpci';
+  const UMOUNT_HPCI = '/usr/local/bin/umount.hpci';
+  ```
 
 3. (Optional) Edit `./manifest.yml` to suit your environment.
 

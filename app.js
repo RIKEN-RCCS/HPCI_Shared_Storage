@@ -1,9 +1,12 @@
 'use strict';
 
+// Command path
+const JWT_AGENT = '/usr/local/bin/jwt-agent';
+const MOUNT_HPCI = '/usr/local/bin/mount.hpci';
+const UMOUNT_HPCI = '/usr/local/bin/umount.hpci';
+
 // Core dependencies
 const express = require('express');
-const fs = require('fs');
-const yaml = require('js-yaml');
 const path = require('path');
 const { spawn } = require('child_process');
 
@@ -17,34 +20,6 @@ app.use(express.json());
 app.use(basePath, router);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
-// Read command paths from config.yml, applies defaults, and verifies that
-// all required binaries exist.
-// 
-// @return {object} Object containing verified command paths
-// @throw Error if any command is missing
-function getCommands() {
-  // Load config.yml (fall back to empty object if missing)
-  const cfg = yaml.load(fs.readFileSync('./config.yml', 'utf8')) || {};
-
-  // Define commands with fallback defaults
-  const cmds = {
-    jwt_agent: cfg.jwt_agent   || '/usr/local/bin/jwt-agent',
-    mount:     cfg.mount_hpci  || '/usr/local/bin/mount.hpci',
-    umount:    cfg.umount_hpci || '/usr/local/bin/umount.hpci',
-  };
-
-  // Verify that each command exists
-  for (const [name, cmd] of Object.entries(cmds)) {
-    if (!fs.existsSync(cmd)) {
-      const err = new Error(`Command not found: ${cmd} (${name})`);
-      err.status = 500;
-      throw err;
-    }
-  }
-
-  return cmds;
-}
 
 // Output a timestamped log message with a consistent prefix.
 function output_log(message) {
@@ -61,17 +36,9 @@ router.post('/api/mount', (req, res) => {
     return res.json({ ok: false, message: 'Missing HPCI ID or passphrase' });
   }
 
-  // Load & verify commands
-  let CMDS;
-  try {
-    CMDS = getCommands();
-  } catch (err) {
-    return res.status(err.status || 500).json({ ok: false, message: err.message });
-  }
-
   // Run jwt-agent
   const jwtArgs = ['-s', 'https://elpis.hpci.nii.ac.jp/', '-l', hpciId];
-  const jwt = spawn(CMDS.jwt_agent, jwtArgs, { stdio: ['pipe', 'pipe', 'pipe'] });
+  const jwt = spawn(JWT_AGENT, jwtArgs, { stdio: ['pipe', 'pipe', 'pipe'] });
   jwt.stdin.write(passphrase + '\n');
   jwt.stdin.end();
 
@@ -87,7 +54,7 @@ router.post('/api/mount', (req, res) => {
     }
 
     // Run mount.hpci
-    const mount = spawn(CMDS.mount, [], { stdio: ['ignore', 'pipe', 'pipe'] });
+    const mount = spawn(MOUNT_HPCI, [], { stdio: ['ignore', 'pipe', 'pipe'] });
 
     let mStdout = '';
     let mStderr = '';
@@ -111,16 +78,9 @@ router.post('/api/mount', (req, res) => {
 // Return: { ok: true } on success
 router.post('/api/umount', (_req, res) => {
   output_log("call /api/umount");
-  // Load & verify commands
-  let CMDS;
-  try {
-    CMDS = getCommands();
-  } catch (err) {
-    return res.status(err.status || 500).json({ ok: false, message: err.message });
-  }
 
   // Run umount.hpci
-  const umount = spawn(CMDS.umount, [], { stdio: ['ignore', 'pipe', 'pipe'] });
+  const umount = spawn(UMOUNT_HPCI, [], { stdio: ['ignore', 'pipe', 'pipe'] });
 
   let uStdout = '';
   let uStderr = '';
