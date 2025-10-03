@@ -35,7 +35,7 @@
           <form id="umountForm" method="POST" action="/login" class="d-none">
             <div class="mt-3">
               <div class="d-grid gap-2">
-                <button id="umountBtn" type="submit" class="btn btn-danger">Unmount</button>
+                <button id="umountBtn" type="submit" class="btn btn-success">Unmount</button>
               </div>
             </div>
           </form>
@@ -100,7 +100,7 @@
         const res = await fetch(base + '/api/mount', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ hpci_id: hpciId, passphrase })
+          body: JSON.stringify({ hpciId, passphrase })
         });
         const data = await res.json();
 
@@ -120,7 +120,7 @@
           passphrase_obj.disabled = true;
           mounted = true;
         } else {
-          mountResult.innerHTML = '<div class="alert alert-danger">Mount failed: ' + escapeHtml(data.stderr || data.raw || 'Unknown error') + '</div>';
+          mountResult.innerHTML = '<div class="alert alert-danger">Mount failed: ' + escapeHtml(data.message || 'Unknown error') + '</div>';
         }
       } catch (err) {
         mountResult.innerHTML = '<div class="alert alert-danger">Request failed: ' + escapeHtml(toErrorText(err)) + '</div>';
@@ -148,7 +148,7 @@
           step3p.classList.add('d-none');
           umountForm.classList.add('d-none');
         } else {
-	  umountResult.innerHTML = '<div class="alert alert-danger">Unmount failed: ' + escapeHtml(data.stderr || data.raw || 'Unknown error') + '</div>';
+	  umountResult.innerHTML = '<div class="alert alert-danger">Unmount failed: ' + escapeHtml(data.message || 'Unknown error') + '</div>';
         }
       } catch (err) {
 	umountResult.innerHTML = '<div class="alert alert-danger">Request failed: ' + escapeHtml(toErrorText(err)) + '</div>';

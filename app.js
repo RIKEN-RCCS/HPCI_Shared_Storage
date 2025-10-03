@@ -56,9 +56,9 @@ function output_log(message) {
 // Return: { ok: true, path: string } on success
 router.post('/api/mount', (req, res) => {
   output_log("call /api/mount");    
-  const { hpci_id, passphrase } = req.body || {};
-  if (!hpci_id || !passphrase) {
-    return res.status(400).json({ ok: false, stderr: 'Missing HPCI ID or passphrase' });
+  const { hpciId, passphrase } = req.body || {};
+  if (!hpciId || !passphrase) {
+    return res.json({ ok: false, message: 'Missing HPCI ID or passphrase' });
   }
 
   // Load & verify commands
@@ -66,11 +66,11 @@ router.post('/api/mount', (req, res) => {
   try {
     CMDS = getCommands();
   } catch (err) {
-    return res.status(err.status || 500).json({ ok: false, stderr: err.message });
+    return res.status(err.status || 500).json({ ok: false, message: err.message });
   }
 
   // Run jwt-agent
-  const jwtArgs = ['-s', 'https://elpis.hpci.nii.ac.jp/', '-l', hpci_id];
+  const jwtArgs = ['-s', 'https://elpis.hpci.nii.ac.jp/', '-l', hpciId];
   const jwt = spawn(CMDS.jwt_agent, jwtArgs, { stdio: ['pipe', 'pipe', 'pipe'] });
   jwt.stdin.write(passphrase + '\n');
   jwt.stdin.end();
@@ -83,7 +83,7 @@ router.post('/api/mount', (req, res) => {
   jwt.on('close', (jwtCode) => {
     if (jwtCode !== 0) {
       const message = jwtStdout.trim() + '\n' + jwtStderr.trim();
-      return res.json({ ok: false, stage: CMDS.jwt_agent, code: jwtCode, stderr: message });
+      return res.json({ ok: false, message });
     }
 
     // Run mount.hpci
@@ -101,7 +101,7 @@ router.post('/api/mount', (req, res) => {
       if (mountCode === 0 && match) {
         return res.json({ ok: true, path: match[1] });
       } else {
-        return res.json({ ok: false, stage: CMDS.mount, code: mountCode, raw: output });
+        return res.json({ ok: false, message: output });
       }
     });
   });
@@ -116,7 +116,7 @@ router.post('/api/umount', (_req, res) => {
   try {
     CMDS = getCommands();
   } catch (err) {
-    return res.status(err.status || 500).json({ ok: false, stderr: err.message });
+    return res.status(err.status || 500).json({ ok: false, message: err.message });
   }
 
   // Run umount.hpci
@@ -130,8 +130,9 @@ router.post('/api/umount', (_req, res) => {
   umount.on('close', (umountCode) => {
     if (umountCode === 0) {
       return res.json({ ok: true });
+    } else {
+      return res.json({ ok: false, message: (uStdout + '\n' + uStderr).trim() });
     }
-    return res.json({ ok: false, stage: CMDS.umount, code: umountCode, raw: (uStdout + '\n' + uStderr).trim() });
   });
 });
 
